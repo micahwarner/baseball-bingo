@@ -7,7 +7,8 @@ html {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -40,7 +41,8 @@ button {
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #0f172a; /* slate-900 */
+  background: #0f172a;
+  /* slate-900 */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -49,7 +51,8 @@ button {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #1e3a8a; /* blue-900 */
+  background: #1e3a8a;
+  /* blue-900 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -57,14 +60,18 @@ button {
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #2563eb; /* blue-600 */
+  background: #2563eb;
+  /* blue-600 */
 }
 
 /* Synchronized bounce animation for winning cells */
 @keyframes bounce-sync {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -90,15 +97,18 @@ button {
 
 /* Font size classes */
 .font-size-small {
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
+  /* 12px */
 }
 
 .font-size-normal {
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
+  /* 16px */
 }
 
 .font-size-large {
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.25rem;
+  /* 20px */
 }
 
 /* High contrast mode */
@@ -107,12 +117,97 @@ button {
 }
 
 .high-contrast .marked-square {
-  border-color: #fbbf24 !important; /* yellow-400 */
+  border-color: #fbbf24 !important;
+  /* yellow-400 */
   border-width: 4px !important;
+}
+
+/* Bingo square text overflow handling */
+.bingo-square-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  hyphens: auto;
+  max-height: 100%;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+}
+
+/* Responsive font sizing using clamp - scales with viewport and container */
+/* Mobile: smaller base, scales with viewport width */
+.bingo-square-text-small {
+  font-size: clamp(0.45rem, 1.8vw, 0.6rem);
+}
+
+.bingo-square-text-normal {
+  font-size: clamp(0.5rem, 2vw, 0.65rem);
+}
+
+.bingo-square-text-large {
+  font-size: clamp(0.55rem, 2.2vw, 0.75rem);
+}
+
+/* Tablet and up: larger base, better scaling */
+@media (min-width: 640px) {
+  .bingo-square-text-small {
+    font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+  }
+
+  .bingo-square-text-normal {
+    font-size: clamp(0.6rem, 1.8vw, 0.85rem);
+  }
+
+  .bingo-square-text-large {
+    font-size: clamp(0.65rem, 2vw, 0.95rem);
+  }
+}
+
+/* Desktop/Tablet landscape: even larger text */
+@media (min-width: 768px) {
+  .bingo-square-text-small {
+    font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+  }
+
+  .bingo-square-text-normal {
+    font-size: clamp(0.65rem, 1.5vw, 0.95rem);
+  }
+
+  .bingo-square-text-large {
+    font-size: clamp(0.7rem, 1.8vw, 1.1rem);
+  }
+}
+
+/* Large screens: maximize text size */
+@media (min-width: 1024px) {
+  .bingo-square-text-small {
+    font-size: clamp(0.65rem, 1vw, 0.85rem);
+  }
+
+  .bingo-square-text-normal {
+    font-size: clamp(0.7rem, 1.2vw, 1rem);
+  }
+
+  .bingo-square-text-large {
+    font-size: clamp(0.75rem, 1.5vw, 1.25rem);
+  }
+}
+
+/* Emoji scaling */
+.bingo-square-emoji {
+  flex-shrink: 0;
+}
+
+/* Ensure bingo squares are uniform */
+.bingo-card-grid>* {
+  min-width: 0;
+  min-height: 0;
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

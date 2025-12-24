@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { getEventEmoji } from '../utils/bingoEvents';
 
-const BingoSquare = ({ cell, row, col, onToggle, isWinning, animationSyncKey, settings = {} }) => {
+const BingoSquare = forwardRef(({ cell, row, col, onToggle, isWinning, animationSyncKey, settings = {} }, ref) => {
     const { event, marked, isFree } = cell;
     const showEmojis = settings.showEmojis !== false; // Default to true
     const reducedMotion = settings.reducedMotion || false;
@@ -10,9 +10,9 @@ const BingoSquare = ({ cell, row, col, onToggle, isWinning, animationSyncKey, se
     const fontSize = settings.fontSize || 'normal';
 
     const fontSizeClasses = {
-        small: 'text-xs sm:text-xs md:text-sm',
-        normal: 'text-xs sm:text-sm md:text-base',
-        large: 'text-sm sm:text-base md:text-lg'
+        small: 'text-[9px] sm:text-[10px] md:text-xs',
+        normal: 'text-[10px] sm:text-xs md:text-sm',
+        large: 'text-xs sm:text-sm md:text-base'
     };
 
     const animationSpeed = settings.animationSpeed || 'normal';
@@ -38,15 +38,45 @@ const BingoSquare = ({ cell, row, col, onToggle, isWinning, animationSyncKey, se
     const markedBorder = highContrast && marked ? 'border-yellow-400' : '';
     const unmarkedBorder = highContrast && !marked ? 'border-gray-500 dark:border-gray-400' : '';
 
+    // CSS-based font size classes using clamp
+    const textSizeClasses = {
+        small: 'bingo-square-text-small',
+        normal: 'bingo-square-text-normal',
+        large: 'bingo-square-text-large'
+    };
+
+    const squareRef = useRef(null);
+    const textRef = useRef(null);
+    const emojiRef = useRef(null);
+
+    // Expose measurement method to parent
+    useImperativeHandle(ref, () => ({
+        measureHeight: () => {
+            if (!squareRef.current || !textRef.current) return null;
+
+            const square = squareRef.current;
+            const textElement = textRef.current;
+            const emojiElement = emojiRef.current;
+
+            // Get the actual content height needed
+            const emojiHeight = emojiElement && showEmojis ? emojiElement.offsetHeight + parseFloat(getComputedStyle(emojiElement).marginBottom) : 0;
+            const textHeight = textElement.scrollHeight;
+            const padding = parseFloat(getComputedStyle(square).paddingTop) * 2;
+
+            // Return the minimum height needed for this square
+            return emojiHeight + textHeight + padding;
+        }
+    }));
+
     return (
         <button
+            ref={squareRef}
             onClick={handleClick}
             className={`
-        relative aspect-square p-2 rounded-lg ${borderWidth}
+        relative w-full p-1 sm:p-2 rounded-lg ${borderWidth}
         ${reducedMotion ? '' : 'transition-all transform'}
-        flex flex-col items-center justify-center
-        ${fontSizeClasses[fontSize]}
-        font-semibold
+        flex flex-col items-center justify-center overflow-hidden
+        font-semibold min-w-0 h-full
         ${marked
                     ? `bg-baseball-blue dark:bg-gradient-to-br dark:from-blue-700 dark:to-blue-800 text-white border-baseball-blue dark:border-blue-500 ${reducedMotion ? '' : 'scale-95'} ${markedBorder} ${highContrast ? 'marked-square' : ''}`
                     : `bg-white dark:bg-slate-700/80 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-slate-600 ${reducedMotion ? '' : 'hover:border-baseball-red dark:hover:border-red-500 hover:scale-105'} ${unmarkedBorder}`
@@ -61,15 +91,13 @@ const BingoSquare = ({ cell, row, col, onToggle, isWinning, animationSyncKey, se
             disabled={isFree}
             aria-label={`${event}${marked ? ' - Marked' : ''}${isFree ? ' - Free Space' : ''}`}
         >
-            {/* Emoji */}
             {showEmojis && (
-                <span className={`${fontSize === 'small' ? 'text-xl sm:text-2xl' : fontSize === 'large' ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} mb-1`}>
+                <span ref={emojiRef} className={`bingo-square-emoji ${fontSize === 'small' ? 'text-lg sm:text-xl md:text-2xl' : fontSize === 'large' ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'} mb-0.5 sm:mb-1 flex-shrink-0`}>
                     {getEventEmoji(event)}
                 </span>
             )}
 
-            {/* Event name */}
-            <span className="text-center leading-tight">
+            <span ref={textRef} className={`bingo-square-text ${textSizeClasses[fontSize]} text-center leading-tight px-0.5 sm:px-1 w-full min-w-0`}>
                 {event}
             </span>
 
@@ -91,6 +119,8 @@ const BingoSquare = ({ cell, row, col, onToggle, isWinning, animationSyncKey, se
             )}
         </button>
     );
-};
+});
+
+BingoSquare.displayName = 'BingoSquare';
 
 export default BingoSquare;
