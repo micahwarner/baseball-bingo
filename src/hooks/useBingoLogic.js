@@ -20,6 +20,8 @@ export const useBingoLogic = () => {
         }
     }, [cardId, setHasAchievedBingo]);
 
+    // Load card from URL if someone shared a link
+    // The ref makes sure we only do this once
     useEffect(() => {
         if (urlCardLoaded.current) return;
 
@@ -34,9 +36,10 @@ export const useBingoLogic = () => {
                 setCard(newCard);
                 setCardId(newCardId);
                 setWinState({ hasBingo: false, winType: null, isBlackout: false, winningCells: [] });
-                setMarkedCount(1);
+                setMarkedCount(1); // Free space is always marked
                 setHasAchievedBingo(false);
 
+                // Clean up URL so it doesn't reload on refresh
                 window.history.replaceState({}, document.title, window.location.pathname);
                 urlCardLoaded.current = true;
             }
@@ -91,14 +94,17 @@ export const useBingoLogic = () => {
 
             setCard(newCard);
 
+            // Check for blackout first
             const isBlackout = checkForBlackout(newCard);
             if (isBlackout) {
+                // Blackout means every cell wins
                 const allWinningCells = newCard.flatMap((row, rowIndex) =>
                     row.map((_, colIndex) => ({ row: rowIndex, col: colIndex }))
                 );
                 setWinState({ hasBingo: true, winType: 'Blackout', isBlackout: true, winningCells: allWinningCells });
                 setHasAchievedBingo(true);
             } else if (!hasAchievedBingo) {
+                // Only check for bingo if we haven't won yet
                 const result = checkForBingo(newCard);
                 if (result.hasBingo) {
                     setWinState({ ...result, isBlackout: false });
@@ -107,6 +113,7 @@ export const useBingoLogic = () => {
                     setWinState({ hasBingo: false, winType: null, isBlackout: false, winningCells: [] });
                 }
             } else {
+                // Already won, don't check again
                 setWinState({ hasBingo: false, winType: null, isBlackout: false, winningCells: [] });
             }
             setMarkedCount(countMarked(newCard));

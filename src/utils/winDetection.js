@@ -9,6 +9,7 @@ export const checkForBingo = (card) => {
     const allWinningCells = [];
     const winTypes = [];
 
+    // Check rows
     for (let row = 0; row < size; row++) {
         if (card[row].every(cell => cell.marked)) {
             const winningCells = card[row].map((_, col) => ({ row, col }));
@@ -17,6 +18,7 @@ export const checkForBingo = (card) => {
         }
     }
 
+    // Check columns
     for (let col = 0; col < size; col++) {
         const column = card.map(row => row[col]);
         if (column.every(cell => cell.marked)) {
@@ -26,6 +28,7 @@ export const checkForBingo = (card) => {
         }
     }
 
+    // Check top-left to bottom-right diagonal
     const diagonal1 = card.map((row, i) => row[i]);
     if (diagonal1.every(cell => cell.marked)) {
         const winningCells = card.map((_, i) => ({ row: i, col: i }));
@@ -33,6 +36,7 @@ export const checkForBingo = (card) => {
         winTypes.push('Diagonal \\\\');
     }
 
+    // Check top-right to bottom-left diagonal
     const diagonal2 = card.map((row, i) => row[size - 1 - i]);
     if (diagonal2.every(cell => cell.marked)) {
         const winningCells = card.map((_, i) => ({ row: i, col: size - 1 - i }));
@@ -40,6 +44,8 @@ export const checkForBingo = (card) => {
         winTypes.push('Diagonal //');
     }
 
+    // Remove duplicates (a cell can be in multiple winning lines)
+    // Use Map to dedupe by row-col combo
     const uniqueWinningCells = Array.from(
         new Map(allWinningCells.map(cell => [`${cell.row}-${cell.col}`, cell])).values()
     );

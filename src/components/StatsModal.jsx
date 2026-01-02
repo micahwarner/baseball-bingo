@@ -8,14 +8,12 @@ const StatsModal = ({ show, onClose, stats, getMostCommonWinType, getAverageWinT
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
-        // Check if dark mode is active
         const checkDarkMode = () => {
             setIsDark(document.documentElement.classList.contains('dark'));
         };
         
         checkDarkMode();
         
-        // Watch for theme changes
         const observer = new MutationObserver(checkDarkMode);
         observer.observe(document.documentElement, {
             attributes: true,

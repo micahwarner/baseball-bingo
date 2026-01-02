@@ -62,11 +62,11 @@ function App() {
     getAverageBlackoutTime,
     resetStats
   } = useStats(settings.trackStatistics);
-  // useSound with settings as ground truth
   const { playSound } = useSound(settings.soundEnabled, settings.soundVolume);
   const { toasts, showSuccess, showError, showWarning, removeToast } = useToast();
   const [currentWinTime, setCurrentWinTime] = useState(null);
 
+  // Keep theme in sync with settings
   useEffect(() => {
     if (theme !== settings.theme) {
       if (settings.theme === 'dark' && theme === 'light') {
@@ -82,6 +82,8 @@ function App() {
     updateSetting('theme', newTheme);
   };
 
+  // Handle theme changes from settings modal
+  // The ref prevents the sync effect from looping
   const handleThemeChangeFromSettings = (newTheme) => {
     isUpdatingThemeFromSettings.current = true;
     if (newTheme !== theme) {
@@ -91,6 +93,7 @@ function App() {
         toggleTheme();
       }
     }
+    // Give the sync effect time to run
     setTimeout(() => {
       isUpdatingThemeFromSettings.current = false;
     }, 100);
@@ -136,10 +139,11 @@ function App() {
     };
   }, []);
 
+  // End games that have been inactive for 30+ minutes
   useEffect(() => {
     const gameId = card && cardId ? `${cardId}-${stats.lastGameStartTime}` : null;
 
-    // Skip if we've already checked this exact game
+    // Skip if we already checked this game
     if (gameId && lastCheckedGameId.current === gameId) return;
     if (hasEndedInactiveGame.current && gameId) return;
 
@@ -147,20 +151,18 @@ function App() {
       if (card && stats.lastGameStartTime && !hasEndedInactiveGame.current) {
         const now = Date.now();
         const timeSinceLastActivity = now - lastActivityTime;
-        const THIRTY_MINUTES = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const THIRTY_MINUTES = 30 * 60 * 1000;
 
-        // If it's been more than 30 minutes since last activity, end the game
         if (timeSinceLastActivity > THIRTY_MINUTES) {
-          hasEndedInactiveGame.current = true; // Prevent multiple calls
+          hasEndedInactiveGame.current = true;
           if (gameId) {
-            lastCheckedGameId.current = gameId; // Mark this game as checked
+            lastCheckedGameId.current = gameId;
           }
           recordGameEnd(false);
           resetGame();
           setShowWelcomeScreen(true);
           showWarning('Your game was inactive for more than 30 minutes and has been ended.');
         } else if (gameId) {
-          // Mark this game as checked (it's still active)
           lastCheckedGameId.current = gameId;
         }
       }
@@ -168,6 +170,7 @@ function App() {
 
     checkInactivity();
 
+    // Check again when user comes back to the tab
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !hasEndedInactiveGame.current) {
         checkInactivity();
@@ -180,19 +183,19 @@ function App() {
     };
   }, [card, cardId, stats.lastGameStartTime, lastActivityTime, recordGameEnd, resetGame, showWarning]);
 
-  // Reset the flag when a new game starts (not from inactivity)
+  // Reset inactivity flags for new games
   useEffect(() => {
     if (card && stats.lastGameStartTime) {
       const now = Date.now();
       const timeSinceLastActivity = now - lastActivityTime;
       const THIRTY_MINUTES = 30 * 60 * 1000;
-      // If we have recent activity, this is a legitimate new game - reset flags
+      // Only reset if there's been recent activity (user started a new game, not a timeout)
       if (timeSinceLastActivity < THIRTY_MINUTES) {
         hasEndedInactiveGame.current = false;
         lastCheckedGameId.current = null;
       }
     } else if (!card) {
-      // No card means no game, reset the flags
+      // No card, no game
       hasEndedInactiveGame.current = false;
       lastCheckedGameId.current = null;
     }
@@ -206,7 +209,7 @@ function App() {
     }
   }, [card, initializeCard, recordGameStart, stats.lastGameStartTime]);
 
-  // Show win modal when bingo is achieved (detect changes to win state)
+  // Show win modal when we get a new win (not just a re-render)
   useEffect(() => {
     const prevState = prevWinStateRef.current;
     const currentState = {
@@ -215,6 +218,7 @@ function App() {
       winType: winState.winType
     };
 
+    // New win = just got a bingo, or upgraded from bingo to blackout
     const isNewWin = winState.hasBingo && (
       !prevState.hasBingo ||
       (prevState.hasBingo && !prevState.isBlackout && currentState.isBlackout)
@@ -238,7 +242,6 @@ function App() {
     prevWinStateRef.current = currentState;
   }, [winState.hasBingo, winState.isBlackout, winState.winType, recordBingo, playSound, getCurrentGameTime]);
 
-  // Apply high contrast class to body/html if needed
   useEffect(() => {
     if (settings.highContrast) {
       document.documentElement.classList.add('high-contrast');
@@ -250,7 +253,6 @@ function App() {
     };
   }, [settings.highContrast]);
 
-  // Apply reduced motion class
   useEffect(() => {
     if (settings.reducedMotion) {
       document.documentElement.classList.add('reduced-motion');
@@ -262,7 +264,6 @@ function App() {
     };
   }, [settings.reducedMotion]);
 
-  // Apply font size class
   useEffect(() => {
     const fontSizeClass = `font-size-${settings.fontSize || 'normal'}`;
     document.body.className = document.body.className.replace(/font-size-\w+/g, '');
@@ -271,7 +272,6 @@ function App() {
 
   const handleReset = () => {
     try {
-      // If giving up mid-game (game active but not won), show game over modal
       const isGivingUp = stats.lastGameStartTime && !winState.hasBingo;
 
       if (isGivingUp) {
@@ -280,14 +280,10 @@ function App() {
 
         recordGameEnd(false);
 
-        // Set stats for modal display
         setGameOverTime(currentGameTime);
         setGameOverMarkedCount(currentMarkedCount);
-
-        // Show game over modal 
         setShowGameOverModal(true);
       } else {
-        // Normal reset - record and show welcome screen
         recordGameEnd(winState.hasBingo);
         resetGame();
         setShowWinModal(false);
@@ -308,7 +304,6 @@ function App() {
     try {
       initializeCard();
       setShowWelcomeScreen(false);
-      // Always start timer automatically when starting a new game
       recordGameStart();
       showSuccess('New game started!');
     } catch (error) {
@@ -317,7 +312,6 @@ function App() {
     }
   };
 
-  // Export stats as JSON
   const handleExportStats = () => {
     try {
       const statsData = {
@@ -342,7 +336,6 @@ function App() {
     }
   };
 
-  // Clear all stats
   const handleClearStats = () => {
     try {
       resetStats();
@@ -360,7 +353,6 @@ function App() {
       setGameOverMarkedCount(0);
       setCurrentWinTime(null);
       setStatsOpenedFromGameOver(false);
-      // reset the game and start a new one
       resetGame();
       handleStartNewGame();
     } catch (error) {
@@ -374,7 +366,6 @@ function App() {
     setGameOverTime(null);
     setGameOverMarkedCount(0);
     setStatsOpenedFromGameOver(false);
-    // Reset the game and show welcome screen when closing game over modal
     resetGame();
     setShowWelcomeScreen(true);
   };
@@ -392,7 +383,6 @@ function App() {
     }
   };
 
-  // Share card as image
   const handleShareCard = async () => {
     if (!cardRef.current) return;
 
@@ -412,7 +402,6 @@ function App() {
 
       const shared = await shareImage(blob, filename, shareText);
       if (!shared) {
-        // If Web Share API not available, image was downloaded
         showSuccess('Card image downloaded!');
       } else {
         showSuccess('Card shared successfully!');
@@ -424,11 +413,11 @@ function App() {
     }
   };
 
-  // Share win screenshot (card + win message overlay)
   const handleShareWin = async () => {
     if (!cardRef.current) return;
 
     try {
+      // Build the share image off-screen so it doesn't flash on screen
       const container = document.createElement('div');
       container.className = 'share-container';
       container.style.position = 'absolute';
@@ -442,11 +431,12 @@ function App() {
 
       document.body.appendChild(container);
 
+      // Clone the card and remove animations (they look bad in screenshots)
       const cardClone = cardRef.current.cloneNode(true);
-
       const animatedElements = cardClone.querySelectorAll('.animate-bounce-slow');
       animatedElements.forEach(el => el.classList.remove('animate-bounce-slow'));
 
+      // Build the win message header
       const header = document.createElement('div');
       header.style.textAlign = 'center';
       header.style.marginBottom = '30px';
@@ -480,6 +470,7 @@ function App() {
       container.appendChild(header);
       container.appendChild(cardClone);
 
+      // Give the browser time to render before capturing
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const blob = await captureElementAsImage(container, {
@@ -494,7 +485,6 @@ function App() {
 
       const shared = await shareImage(blob, filename, shareText);
       if (!shared) {
-        // If Web Share API not available, image was downloaded
         showSuccess('Win image downloaded!');
       } else {
         showSuccess('Win shared successfully!');
@@ -506,7 +496,6 @@ function App() {
     }
   };
 
-  // Show welcome screen if no card or if explicitly shown
   if (!card || showWelcomeScreen) {
     return (
       <>
@@ -522,7 +511,6 @@ function App() {
           show={showStatsModal}
           onClose={() => {
             setShowStatsModal(false);
-            // Don't go back to welcome screen if there's a card
             if (!card) {
               setShowWelcomeScreen(true);
             }
@@ -574,7 +562,6 @@ function App() {
             card={card}
             onSquareToggle={(row, col) => {
               toggleSquare(row, col);
-              // Play mark sound when a square is toggled
               if (card && !card[row][col].isFree) {
                 playSound('mark');
               }
@@ -640,7 +627,6 @@ function App() {
         show={showStatsModal}
         onClose={() => {
           setShowStatsModal(false);
-          // If stats was opened from game over modal, show it again
           if (statsOpenedFromGameOver) {
             setShowGameOverModal(true);
             setStatsOpenedFromGameOver(false);
@@ -678,7 +664,6 @@ function App() {
         }}
         onResetSettings={() => {
           resetSettings();
-          // Reset theme to default
           if (settings.theme !== 'light') {
             if (theme === 'dark') {
               toggleTheme();
@@ -696,7 +681,6 @@ function App() {
         onImportSettings={async (file) => {
           const success = await importSettings(file);
           if (success) {
-            // Theme sync will happen automatically via useEffect when settings update
             showSuccess('Settings imported successfully!');
           } else {
             showError('Failed to import settings. Please check the file format.');

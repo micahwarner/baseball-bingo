@@ -7,7 +7,6 @@ import { useLocalStorage } from './useLocalStorage';
  * @returns {[string, function, boolean]} [theme, toggleTheme, isDark]
  */
 export const useTheme = () => {
-    // Get initial theme - check system preference if no saved preference
     const getInitialTheme = () => {
         if (typeof window === 'undefined') return 'light';
 
@@ -20,7 +19,6 @@ export const useTheme = () => {
             }
         }
 
-        // Check system preference if no saved preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return 'dark';
         }

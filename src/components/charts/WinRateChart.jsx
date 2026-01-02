@@ -19,7 +19,6 @@ const WinRateChart = ({ gameHistory, isDark = false }) => {
             return [];
         }
 
-        // Group games by date (day)
         const gamesByDate = {};
         gameHistory.forEach(game => {
             const date = new Date(game.date);
@@ -35,7 +34,6 @@ const WinRateChart = ({ gameHistory, isDark = false }) => {
             }
         });
 
-        // Convert to array and calculate win rates
         return Object.entries(gamesByDate)
             .map(([dateKey, stats]) => {
                 const date = new Date(dateKey);

@@ -112,7 +112,6 @@ export const copyToClipboard = async (text) => {
             await navigator.clipboard.writeText(text);
             return true;
         } else {
-            // Fallback for older browsers
             const textArea = document.createElement('textarea');
             textArea.value = text;
             textArea.style.position = 'fixed';
@@ -157,6 +156,8 @@ export const captureElementAsImage = async (element, options = {}) => {
             throw new Error('Failed to create canvas from element');
         }
 
+        // Convert canvas to blob (needed for sharing/downloading)
+        // html2canvas gives us a canvas, but we need a blob for file ops
         return new Promise((resolve, reject) => {
             canvas.toBlob(
                 (blob) => {
@@ -167,7 +168,7 @@ export const captureElementAsImage = async (element, options = {}) => {
                     resolve(blob);
                 },
                 'image/png',
-                1.0
+                1.0 // Max quality
             );
         });
     } catch (error) {
@@ -207,7 +208,6 @@ export const downloadImage = (blob, filename) => {
             link.click();
         } catch (clickError) {
             console.error('Failed to trigger download:', clickError);
-            // Fallback: try opening in new window
             window.open(url, '_blank');
         } finally {
             setTimeout(() => {
@@ -244,7 +244,6 @@ export const shareImage = async (blob, filename, text = 'Check out my Baseball B
     try {
         const file = new File([blob], filename, { type: 'image/png' });
 
-        // Try Web Share API if available
         if (navigator.share && navigator.canShare) {
             try {
                 if (navigator.canShare({ files: [file] })) {

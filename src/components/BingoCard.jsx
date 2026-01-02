@@ -6,6 +6,7 @@ const BingoCard = ({ card, onSquareToggle, winningCells = [], settings = {} }) =
         return winningCells.some(cell => cell.row === row && cell.col === col);
     };
 
+    // Stable key for winning cells so React doesn't remount them and break animations
     const animationSyncKey = winningCells.length > 0
         ? winningCells.map(c => `${c.row}-${c.col}`).sort().join(',')
         : '';
@@ -14,12 +15,11 @@ const BingoCard = ({ card, onSquareToggle, winningCells = [], settings = {} }) =
     const gridRef = useRef(null);
     const [squareHeight, setSquareHeight] = useState(null);
 
-    // Measure all squares and set uniform height
+    // Make all squares the same height
     useEffect(() => {
         const measureAndAdjust = () => {
             if (!gridRef.current) return;
 
-            // Get all square measurements
             const heights = [];
             Object.values(squareRefs.current).forEach(ref => {
                 if (ref && ref.current) {
@@ -32,28 +32,23 @@ const BingoCard = ({ card, onSquareToggle, winningCells = [], settings = {} }) =
 
             if (heights.length === 0) return;
 
-            // Find the maximum height needed
             const maxHeight = Math.max(...heights);
-
-            // Get the grid width to maintain aspect ratio as much as possible
             const gridWidth = gridRef.current.clientWidth;
             const padding = parseFloat(getComputedStyle(gridRef.current).padding) * 2;
             const gap = parseFloat(getComputedStyle(gridRef.current).gap) || 8;
-            const availableWidth = gridWidth - padding - (gap * 4); // 4 gaps for 5 columns
+            const availableWidth = gridWidth - padding - (gap * 4);
             const baseSquareWidth = availableWidth / 5;
 
-            // Use the larger of: max content height or square width (to maintain reasonable aspect)
-            // But allow vertical growth if content needs it
-            const minHeight = baseSquareWidth; // Minimum square height (aspect-square)
+            // Use whichever is bigger: content height or square width
+            const minHeight = baseSquareWidth;
             const finalHeight = Math.max(maxHeight, minHeight);
 
             setSquareHeight(finalHeight);
         };
 
-        // Measure after a short delay to ensure layout is complete
+        // Wait for layout to settle before measuring
         const timeout = setTimeout(measureAndAdjust, 100);
-
-        // Also measure on resize
+        // Remeasure on resize
         const resizeObserver = new ResizeObserver(() => {
             clearTimeout(timeout);
             setTimeout(measureAndAdjust, 50);
@@ -95,6 +90,7 @@ const BingoCard = ({ card, onSquareToggle, winningCells = [], settings = {} }) =
                 {card.map((row, rowIndex) => (
                     row.map((cell, colIndex) => {
                         const isWinning = isWinningCell(rowIndex, colIndex);
+                        // Winning cells get the animation key to stay mounted, others get a simple key
                         const key = isWinning && animationSyncKey
                             ? `${rowIndex}-${colIndex}-${animationSyncKey}`
                             : `${rowIndex}-${colIndex}`;

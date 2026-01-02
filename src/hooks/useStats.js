@@ -40,10 +40,12 @@ export const useStats = (trackStats = true) => {
             const now = Date.now();
             const gameTime = gameStartTime ? Math.floor((now - gameStartTime) / 1000) : null; // in seconds
 
+            // Track how many times each win type happened
             const newWinTypeCounts = { ...prev.winTypeCounts };
             if (isBlackout) {
                 newWinTypeCounts['Blackout'] = (newWinTypeCounts['Blackout'] || 0) + 1;
             } else if (winType) {
+                // Win type can be multiple types like "Row 1, Column 2"
                 const winTypes = winType.split(',').map(w => w.trim());
                 winTypes.forEach(wt => {
                     newWinTypeCounts[wt] = (newWinTypeCounts[wt] || 0) + 1;
@@ -67,7 +69,8 @@ export const useStats = (trackStats = true) => {
                         fastestBingoTime = gameTime;
                     }
                 }
-            } 
+            }
+            // Only count the first win for streaks (multiple bingos in one game = one win)
             const isFirstWinOfGame = !prev.currentGameHasWin;
             const newCurrentStreak = isFirstWinOfGame ? prev.currentWinStreak + 1 : prev.currentWinStreak;
             const newLongestStreak = Math.max(prev.longestWinStreak, newCurrentStreak);
@@ -97,12 +100,14 @@ export const useStats = (trackStats = true) => {
                 won: hasWon
             });
 
+            // Keep only the last 100 games so localStorage doesn't get huge
             const trimmedHistory = gameHistory.slice(-100);
 
             return {
                 ...prev,
                 totalGames: prev.totalGames + 1,
                 gamesWithWins: hasWon ? prev.gamesWithWins + 1 : prev.gamesWithWins,
+                // Reset streak if they lost, otherwise keep it going
                 currentWinStreak: hasWon ? prev.currentWinStreak : 0,
                 lastGameStartTime: Date.now(),
                 currentGameHasWin: false,

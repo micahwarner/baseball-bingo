@@ -38,7 +38,6 @@ const BingoSquare = forwardRef(({ cell, row, col, onToggle, isWinning, animation
     const markedBorder = highContrast && marked ? 'border-yellow-400' : '';
     const unmarkedBorder = highContrast && !marked ? 'border-gray-500 dark:border-gray-400' : '';
 
-    // CSS-based font size classes using clamp
     const textSizeClasses = {
         small: 'bingo-square-text-small',
         normal: 'bingo-square-text-normal',
@@ -49,7 +48,7 @@ const BingoSquare = forwardRef(({ cell, row, col, onToggle, isWinning, animation
     const textRef = useRef(null);
     const emojiRef = useRef(null);
 
-    // Expose measurement method to parent
+    // Let the parent measure how tall this square needs to be
     useImperativeHandle(ref, () => ({
         measureHeight: () => {
             if (!squareRef.current || !textRef.current) return null;
@@ -58,12 +57,12 @@ const BingoSquare = forwardRef(({ cell, row, col, onToggle, isWinning, animation
             const textElement = textRef.current;
             const emojiElement = emojiRef.current;
 
-            // Get the actual content height needed
+            // Add up emoji height, text height, and padding
+            // scrollHeight includes wrapped text
             const emojiHeight = emojiElement && showEmojis ? emojiElement.offsetHeight + parseFloat(getComputedStyle(emojiElement).marginBottom) : 0;
             const textHeight = textElement.scrollHeight;
             const padding = parseFloat(getComputedStyle(square).paddingTop) * 2;
 
-            // Return the minimum height needed for this square
             return emojiHeight + textHeight + padding;
         }
     }));

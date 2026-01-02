@@ -39,7 +39,6 @@ const TimeDistributionChart = ({ winTimes, blackoutTimes, isDark }) => {
             return [];
         }
 
-        // Create time buckets (bins)
         const maxTime = Math.max(...allTimes);
         const bucketSize = Math.max(30, Math.ceil(maxTime / 20)); // 20 buckets, minimum 30 seconds
         
@@ -53,7 +52,6 @@ const TimeDistributionChart = ({ winTimes, blackoutTimes, isDark }) => {
             buckets[bucket]++;
         });
 
-        // Convert to array and format
         return Object.entries(buckets)
             .map(([time, count]) => ({
                 timeRange: formatTimeRange(parseInt(time), bucketSize),

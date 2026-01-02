@@ -5,7 +5,6 @@ const Header = ({ markedCount, onReset, onToggleSound, soundEnabled, volume, onV
     const [showVolumeMenu, setShowVolumeMenu] = useState(false);
     const volumeMenuRef = useRef(null);
 
-    // Close volume menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (volumeMenuRef.current && !volumeMenuRef.current.contains(event.target)) {
@@ -133,9 +132,7 @@ const Header = ({ markedCount, onReset, onToggleSound, soundEnabled, volume, onV
                             )}
                         </div>
 
-                        {/* Give Up / New Card Button - changes based on game state */}
                         {gameStartTime && !isPaused ? (
-                            // Active game: Show Give Up button
                             <button
                                 onClick={onReset}
                                 className="p-1 sm:p-1.5 md:p-2 bg-orange-500 dark:bg-orange-600 hover:bg-orange-600 dark:hover:bg-orange-700 rounded-lg text-[10px] sm:text-xs md:text-sm font-semibold transition-colors flex items-center justify-center gap-0.5 sm:gap-1 md:gap-2 whitespace-nowrap flex-shrink-0 h-full"
@@ -145,7 +142,6 @@ const Header = ({ markedCount, onReset, onToggleSound, soundEnabled, volume, onV
                                 <span className="hidden sm:inline">Give Up</span>
                             </button>
                         ) : (
-                            // Game won or no active game: Show New Card button
                             <button
                                 onClick={onReset}
                                 className="p-1 sm:p-1.5 md:p-2 bg-baseball-red dark:bg-red-600 hover:bg-red-700 dark:hover:bg-red-700 rounded-lg text-[10px] sm:text-xs md:text-sm font-semibold transition-colors whitespace-nowrap flex-shrink-0 h-full flex items-center justify-center"

@@ -20,7 +20,6 @@ export const useToast = () => {
 
     setToasts(prev => [...prev, { id, message, type, duration }]);
 
-    // Return cleanup function
     return () => {
       removeToast(id);
     };

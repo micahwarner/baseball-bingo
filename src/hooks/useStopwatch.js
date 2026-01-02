@@ -11,7 +11,6 @@ export const useStopwatch = (isRunning, startTime) => {
   const intervalRef = useRef(null);
   const lastUpdateRef = useRef(startTime || Date.now());
 
-  // Update elapsed time calculation
   const updateElapsedTime = useCallback(() => {
     if (startTime && startTime > 0) {
       const now = Date.now();
@@ -23,13 +22,10 @@ export const useStopwatch = (isRunning, startTime) => {
     }
   }, [startTime]);
 
-  // Start/stop the stopwatch based on isRunning and startTime
   useEffect(() => {
     if (isRunning && startTime && startTime > 0) {
-      // Initial update
       updateElapsedTime();
       
-      // Update every second
       intervalRef.current = setInterval(() => {
         updateElapsedTime();
       }, 1000);
@@ -40,13 +36,11 @@ export const useStopwatch = (isRunning, startTime) => {
         }
       };
     } else {
-      // Stop the interval
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
       
-      // Update to final time if we have a startTime
       if (startTime && startTime > 0 && !isRunning) {
         updateElapsedTime();
       } else {
@@ -55,7 +49,6 @@ export const useStopwatch = (isRunning, startTime) => {
     }
   }, [isRunning, startTime, updateElapsedTime]);
 
-  // Format time for display (MM:SS or HH:MM:SS)
   const formatTime = useCallback((seconds) => {
     if (!seconds && seconds !== 0) return '00:00';
     

@@ -2,11 +2,16 @@ import { BINGO_EVENTS } from "./bingoEvents";
 
 /**
  * Shuffle array using Fisher-Yates algorithm
+ * Works by swapping each element with a random element before it
+ * This gives a truly random shuffle
  */
 const shuffleArray = (array) => {
     const shuffled = [...array];
+    // Go backwards through the array
     for (let i = shuffled.length - 1; i > 0; i--) {
+        // Pick a random spot from 0 to i
         const j = Math.floor(Math.random() * (i + 1));
+        // Swap them
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
